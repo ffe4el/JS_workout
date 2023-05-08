@@ -18,12 +18,17 @@ class Board extends React.Component{
     constructor(props){ //Board에 생성자를 추가하고 9개의 사각형에 해당하는 9개의 null 배열을 초기 state로 설정
         super(props);
         this.state = {
+          history: [{
             squares : Array(9).fill(null),
-            xIsNext : true,
+          }],
+          stepNumber:0,
+          xIsNext : true,
         };
     }
 
     handleClick(i){
+        const history = this.state.history.slice(0,this.state.stepNumber+1);
+        const current = history[history.length-1];
         const squares = this.state.squares.slice();
 
         // 누군가가 승리하거나 Square가 이미 채워졌다면 Board의 handleClick 함수가 클릭을 무시
@@ -33,19 +38,48 @@ class Board extends React.Component{
         
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         this.setState({
+          history : history.concat([{
             squares : squares,
+          }]), 
             xIsNext : !this.state.xIsNext, //값 뒤집기
         });
     }
 
     //Board에서 Square로 함수를 전달하고 Square는 사각형을 클릭할 때 함수를 호출할 것
     renderSquare(i){//Square는 이제 빈 사각형에 'X', 'O', 또는 null인 value prop을 받습니다.
-        return <Square value={this.state.squares[i]} onClick={() => this.handleClick(i)} />;
+        return (
+        <Square
+         value={this.props.squares[i]}
+         onClick={() => this.props.onClick(i)} />
+        );
+    }
+
+    jumpTo(step){
+      this.setState({
+        stepNumber : step,
+        xIsNext : (step%2) ===0,
+      });
     }
 
     render() {
         // const status = 'Next player: '+(this.state.xIsNext ? 'X' : 'O');
+        const history = this.state.history;
+        const current = history[this.state.stepNumber];
         const winner = calculateWinner(this.state.squares);
+
+        //map함수를 이용해서 이동 기록을 화면에 표시되는 react 버튼 엘리먼트로 맵핑 
+        //=> 과거의 이동으로 돌아가는 버튼 목록 표시가능
+        const moves = history.map((step, move) => {
+          const desc = move ?
+            'Go to move #' + move :
+            'Go to game start';
+          return (
+            <li key={move}>
+              <button onClick={() => this.jumpTo(move)}>{desc}</button>
+            </li>
+          );
+        });
+
         let status;
         if (winner) {
           status = 'Winner: ' + winner;
@@ -54,24 +88,18 @@ class Board extends React.Component{
         }
 
         return (
-          <div>
-            <div className="status">{status}</div>
-            <div className="board-row">
-              {this.renderSquare(0)}
-              {this.renderSquare(1)}
-              {this.renderSquare(2)}
-            </div>
-            <div className="board-row">
-              {this.renderSquare(3)}
-              {this.renderSquare(4)}
-              {this.renderSquare(5)}
-            </div>
-            <div className="board-row">
-              {this.renderSquare(6)}
-              {this.renderSquare(7)}
-              {this.renderSquare(8)}
-            </div>
+        <div className="game">
+          <div className="game-board">
+          <Board
+            squares={current.squares}
+            onClick={(i) => this.handleClick(i)}
+          />
           </div>
+          <div className="game-info">
+            <div>{status}</div>
+            <ol>{moves}</ol>
+          </div>
+        </div>
         );
       }
 
