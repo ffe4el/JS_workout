@@ -13,7 +13,7 @@ class ShoppingList extends React.Component{
     }
 }
 
-//Square에 value prop을 전달하기 위해
+//부모 board 컴포넌트에서 자식 square 컴포넌트로 prop전달!!
 class Board extends React.Component{
     constructor(props){ //Board에 생성자를 추가하고 9개의 사각형에 해당하는 9개의 null 배열을 초기 state로 설정
         super(props);
